@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Mercadinho Completo</title>
+    <link rel="stylesheet" href="estilo.css">
+    <!-- Biblioteca para exportar Excel -->
+    <script></script>
+</head>
+<body>
+    <header>
+        <h1>🏪 Mercadinho do Bairro - Sistema Completo</h1>
+    </header>
+
+    <main>
+        <!-- ALERTAS: ESTOQUE BAIXO + PRODUTOS VENCIDOS -->
+        <section class="alerta-estoque" id="alertaEstoque" style="display: none;">
+            <h3>⚠️ Atenção: Produtos com estoque baixo!</h3>
+            <ul id="listaAlerta"></ul>
+        </section>
+
+        <section class="alerta-validade" id="alertaValidade" style="display: none;">
+            <h3>⏰ Atenção: Produtos Vencidos ou Próximos ao Vencimento!</h3>
+            <ul id="listaValidade"></ul>
+        </section>
+
+        <!-- 🔹 MENU DE ABAS 🔹 -->
+        <div class="abas">
+            <button class="aba-btn ativa" data-aba="vendas">🛒 Realizar Venda</button>
+            <button class="aba-btn" data-aba="produtos">📋 Produtos Cadastrados</button>
+            <button class="aba-btn" data-aba="cadastrar">➕ Cadastrar Produto</button>
+            <button class="aba-btn" data-aba="editar">✏️ Editar Produto</button>
+            <button class="aba-btn" data-aba="relatorios">📊 Relatórios</button>
+            <button class="aba-btn" data-aba="historico">📜 Histórico de Vendas</button>
+        </div>
+
+        <!-- 🔹 CONTEÚDO DAS ABAS 🔹 -->
+        <div class="conteudo-abas">
+            <!-- Aba 1: Realizar Venda (COM DESCONTO/ACRÉSCIMO) -->
+            <section class="aba-conteudo ativa" id="vendas">
+                <h2>Realizar Venda</h2>
+                <div class="form-venda">
+                    <label>Escolha o produto:</label>
+                    <select id="produtoVenda" required>
+                        <option value="">Selecione um produto</option>
+                    </select>
+
+                    <label>Quantidade a vender:</label>
+                    <input type="number" id="qtdVenda" min="1" required>
+
+                    <button type="button" id="btnAdicionar">Adicionar ao Carrinho</button>
+                </div>
+
+                <h3>Carrinho de Compras</h3>
+                <table id="tabelaCarrinho">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Qtd</th>
+                            <th>Valor Unit.</th>
+                            <th>Subtotal</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <div class="total-venda">
+                    <h3>Total Bruto: R$ <span id="valorTotalBruto">0,00</span></h3>
+                </div>
+
+                <!-- 🆕 CAMPO DE DESCONTO / ACRÉSCIMO -->
+                <div class="desconto-acrescimo">
+                    <h4>Aplicar Desconto ou Acréscimo</h4>
+                    <div class="campos-desconto">
+                        <select id="tipoOperacao">
+                            <option value="desconto">Desconto</option>
+                            <option value="acrescimo">Acréscimo</option>
+                        </select>
+                        <select id="tipoValor">
+                            <option value="valor">R$ (Valor Fixo)</option>
+                            <option value="porcentagem">% (Porcentagem)</option>
+                        </select>
+                        <input type="number" id="valorOperacao" step="0.01" min="0" placeholder="Valor">
+                        <button type="button" id="aplicarOperacao">Aplicar</button>
+                    </div>
+                    <h3>Total Final: R$ <span id="valorTotal">0,00</span></h3>
+                    <p id="textoOperacao" style="color: #2c3e50; font-weight: bold;"></p>
+                </div>
+
+                <!-- CÁLCULO DE TROCO -->
+                <div class="troco">
+                    <label>Valor pago pelo cliente (R$):</label>
+                    <input type="number" id="valorPago" step="0.01" min="0">
+                    <button type="button" id="calcularTroco">Calcular Troco</button>
+                    <p id="resultadoTroco"></p>
+                </div>
+
+                <button type="button" id="finalizarVenda">Finalizar Venda</button>
+            </section>
+
+            <!-- Aba 2: Produtos Cadastrados (COM CUSTO, LUCRO E VALIDADE) -->
+            <section class="aba-conteudo" id="produtos">
+                <h2>Lista de Produtos Cadastrados</h2>
+                <table id="tabelaProdutos">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Preço Venda</th>
+                            <th>Preço Custo</th>
+                            <th>Lucro Unit.</th>
+                            <th>Estoque</th>
+                            <th>Validade</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </section>
+
+            <!-- Aba 3: Cadastrar Produto (COM NOVOS CAMPOS) -->
+            <section class="aba-conteudo" id="cadastrar">
+                <h2>Cadastrar Novo Produto</h2>
+                <form id="formProduto">
+                    <label>Nome do produto:</label>
+                    <input type="text" id="nomeProduto" required>
+
+                    <label>Preço de Custo (R$):</label>
+                    <input type="number" id="precoCusto" step="0.01" min="0" required>
+
+                    <label>Preço de Venda (R$):</label>
+                    <input type="number" id="precoProduto" step="0.01" min="0" required>
+
+                    <label>Quantidade em estoque:</label>
+                    <input type="number" id="qtdProduto" min="1" required>
+
+                    <label>Estoque mínimo (aviso):</label>
+                    <input type="number" id="estoqueMinimo" min="1" required>
+
+                    <!-- 🆕 CAMPO DE VALIDADE -->
+                    <label>Data de Validade:</label>
+                    <input type="date" id="validadeProduto" required>
+
+                    <button type="submit">Cadastrar Produto</button>
+                </form>
+            </section>
+
+            <!-- Aba 4: Editar Produto (COM NOVOS CAMPOS) -->
+            <section class="aba-conteudo" id="editar">
+                <h2>Editar Produto Cadastrado</h2>
+                <label>Escolha o produto para editar:</label>
+                <select id="selecionaProdutoEditar" required>
+                    <option value="">Selecione um produto</option>
+                </select>
+
+                <form id="formEdicao">
+                    <input type="hidden" id="indiceEdicao">
+                    
+                    <label>Nome do produto:</label>
+                    <input type="text" id="editaNome" required>
+
+                    <label>Preço de Custo (R$):</label>
+                    <input type="number" id="editaCusto" step="0.01" min="0" required>
+
+                    <label>Preço de Venda (R$):</label>
+                    <input type="number" id="editaPreco" step="0.01" min="0" required>
+
+                    <label>Quantidade em estoque:</label>
+                    <input type="number" id="editaQtd" min="1" required>
+
+                    <label>Estoque mínimo:</label>
+                    <input type="number" id="editaEstoqueMin" min="1" required>
+
+                    <label>Data de Validade:</label>
+                    <input type="date" id="editaValidade" required>
+
+                    <button type="submit">Salvar Alterações</button>
+                </form>
+            </section>
+
+            <!-- Aba 5: Relatórios (ATUALIZADO COM LUCRO E VALIDADE) -->
+            <section class="aba-conteudo" id="relatorios">
+                <h2>Relatórios e Exportação</h2>
+                <div class="botoes-relatorio">
+                    <button type="button" id="btnExportarExcel" class="btn-relatorio">📥 Exportar Produtos para Excel</button>
+                    <button type="button" id="btnImprimirRelatorio" class="btn-relatorio">🖨️ Imprimir Relatório</button>
+                </div>
+
+                <div class="resumo-lucro">
+                    <h3>💰 Lucro Total Estimado (em estoque): R$ <span id="lucroTotalGeral">0,00</span></h3>
+                </div>
+
+                <div id="areaImpressao" class="area-impressao">
+                    <h2>Relatório de Produtos Cadastrados</h2>
+                    <p>Data: <span id="dataRelatorio"></span></p>
+                    <table id="tabelaRelatorio">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Custo (R$)</th>
+                                <th>Venda (R$)</th>
+                                <th>Lucro Unit.</th>
+                                <th>Margem</th>
+                                <th>Estoque</th>
+                                <th>Validade</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Aba 6: Histórico de Vendas (ATUALIZADO COM DESCONTO) -->
+            <section class="aba-conteudo" id="historico">
+                <h2>📜 Histórico de Vendas</h2>
+                <div class="filtros-historico">
+                    <label>Filtrar por data:</label>
+                    <input type="date" id="filtroData">
+                    <button type="button" id="btnFiltrarData" class="btn-filtro">Filtrar</button>
+                    <button type="button" id="btnLimparFiltro" class="btn-filtro">Limpar</button>
+                </div>
+
+                <div class="botoes-relatorio">
+                    <button type="button" id="btnExportarHistorico" class="btn-relatorio">📥 Exportar Histórico</button>
+                    <button type="button" id="btnImprimirHistorico" class="btn-relatorio">🖨️ Imprimir Histórico</button>
+                </div>
+
+                <div class="resumo-vendas">
+                    <h3>Total de Vendas Período: R$ <span id="totalPeriodo">0,00</span></h3>
+                </div>
+
+                <div class="tabela-scroll">
+                    <table id="tabelaHistorico">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Produtos</th>
+                                <th>Total Bruto</th>
+                                <th>Desconto/Acrescimo</th>
+                                <th>Total Final</th>
+                                <th>Lucro da Venda</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div id="areaImpressaoHistorico" class="area-impressao" style="display: none;">
+                    <h2>Histórico de Vendas</h2>
+                    <p>Período: <span id="periodoImpressao"></span></p>
+                    <table id="tabelaImpressaoHistorico">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Produtos</th>
+                                <th>Total Bruto</th>
+                                <th>Ajuste</th>
+                                <th>Total Final</th>
+                                <th>Lucro</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
